@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 
+const connectDB = require('./config/db');
 
 //Route files
 const massageShops = require ('./routes/massageShops');
