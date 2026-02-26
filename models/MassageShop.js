@@ -28,11 +28,19 @@ const MassageShopSchema = new mongoose.Schema({
     },
     tel: {
         type: String,
-        required: [true, 'Please add a telephone number']
+        required: [true, 'Please add a telephone number'],
+        match: [
+            /^\d{9,10}$/,
+            'Please add a valid phone number (9-10 digits)'
+        ]
     },
     openCloseTime: {
         type: String,
-        required: [true, 'Please add open-close time']
+        required: [true, 'Please add open-close time'],
+        match: [
+        /^([01]\d|2[0-3]):?([0-5]\d) - ([01]\d|2[0-3]):?([0-5]\d)$/,
+        'Please add openCloseTime in format HH:mm - HH:mm'
+    ]
     }
 }, {
     toJSON: { virtuals: true },
