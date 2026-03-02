@@ -15,7 +15,7 @@ const reservationRouter = require('./reservations');
 const {protect, authorize} = require('../middleware/auth');
 
 //Re-route into other resource reouters
-router.use('/:massageshopId/reservations/', reservationRouter);
+router.use('/:massageShopId/reservations/', reservationRouter);
 
 router.route('/')
     .get(getMassageShops)
