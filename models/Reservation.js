@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const ReservationSchema = new mongoose.Schema({
-    apptDate: {
+    date: {
         type: Date,
         required: true
     },

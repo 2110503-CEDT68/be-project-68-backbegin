@@ -73,19 +73,24 @@ exports.getReservation = async (req, res, next) => {
 //@access   Private
 exports.addReservation = async (req, res, next) => {
     try {
-        req.body.massageShop = req.params.massageShopId;
+        req.body.massageShop = req.params.massageShopId; 
+
         const massageShop = await MassageShop.findById(req.params.massageShopId);
-        
         // Check for existing massage shop
         if (!massageShop) {
-            return res.status(404).json({success: false, message: `No massage shop with the id of ${req.params.massageShopId}`});
+            return res.status(404).json({success:false, message:`No massage shop with the id of ${req.params.massageShopId}`});
         }
 
         //add user Id to req.body
         req.body.user = req.user.id;
+
+        if (req.body.date) {
+            req.body.date = new Date(req.body.date);
+        }
+        
         // Check for existing reservations (Limit to 3)
-        const existedReservations = await Reservation.find({ user: req.user.id });
-        //IF the use ris not an admin, they can only create 3 appointment.
+        const existedReservations = await Reservation.find({user:req.user.id});
+        //If the use ris not an admin, they can only create 3 appointment.
         if(existedReservations.length >= 3 && req.user.role !== 'admin') {
             return res.status(400).json({ 
                 success: false, 
@@ -96,6 +101,7 @@ exports.addReservation = async (req, res, next) => {
         const reservation = await Reservation.create(req.body);
         res.status(200).json({ success: true, data: reservation });
     } catch (err) {
+        console.log(err);
         res.status(500).json({ success: false, message: "Cannot create Reservation" });
     }
 };
@@ -138,15 +144,12 @@ exports.deleteReservation = async (req, res, next) => {
             return res.status(404).json({success: false, message: `No reservation with id ${req.params.id}`});
         }
 
-        if (reservation.user.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(401).json({success: false, message: `User ${req.user.id} is not authorized to delete this reservation`});
-        }
-
         //Make sure user is the appointment owner
-        if(appointment.user.toString()!== req.user.id && req.user.role !== 'admin') {
+        if(reservation.user.toString()!== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({success:false,message:`User ${req.user.id} is not authorized to delete this appointment`});
         }
-        await appointment.deleteOne();
+
+        await reservation.deleteOne();
 
         res.status(200).json({success: true, data: {}});
     } catch (err) {
