@@ -37,7 +37,7 @@ class Reservation {
   + deleteReservation(): Response
 }
 
-' แสดงความสัมพันธ์ตามโจทย์ (จองได้ไม่เกิน 3)
+' relation 3 reservation
 User "1" -- "0..3" Reservation : makes >
 MassageShop "1" -- "*" Reservation : has >
 
