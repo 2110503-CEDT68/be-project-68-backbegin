@@ -1,0 +1,44 @@
+@startuml MassageShop
+skinparam classAttributeIconSize 0
+skinparam monochrome true
+
+class User {
+  - name: String
+  - tel: String
+  - email: String
+  - role: String
+  - password: String
+  + register(): Response
+  + login(): Response
+  + getMe(): Response
+}
+
+class MassageShop {
+  - name: String
+  - address: String
+  - district: String
+  - province: String
+  - postalcode: String
+  - tel: String
+  - openCloseTime: String
+  + getMassageShops(): Response
+  + createMassageShop(): Response
+  + updateMassageShop(): Response
+  + deleteMassageShop(): Response
+}
+
+class Reservation {
+  - apptDate: Date
+  - user: ObjectId
+  - massageShop: ObjectId
+  + getReservations(): Response
+  + addReservation(): Response
+  + updateReservation(): Response
+  + deleteReservation(): Response
+}
+
+' แสดงความสัมพันธ์ตามโจทย์ (จองได้ไม่เกิน 3)
+User "1" -- "0..3" Reservation : makes >
+MassageShop "1" -- "*" Reservation : has >
+
+@enduml
