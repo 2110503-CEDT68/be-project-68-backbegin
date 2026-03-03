@@ -10,19 +10,19 @@ exports.getReservations = async (req, res, next) => {
     if(req.user.role !== 'admin') {
         query = Reservation.find({user:req.user.id}).populate({
             path: 'massageShop',
-            select: 'name address tel openCloseTime'
+            select: 'name address tel duration openCloseTime'
         });
     } else {
         //Admin can see all
         if(req.params.massageShopId) {
             query = Reservation.find({massageShop:req.params.massageShopId}).populate({
                 path: 'massageShop',
-                select: 'name address tel openCloseTime'
+                select: 'name address tel duration openCloseTime'
             });
         } else {
             query = Reservation.find().populate({
                 path: 'massageShop',
-                select: 'name address tel openCloseTime'
+                select: 'name address tel duration openCloseTime'
             });
         }
     }
@@ -170,6 +170,44 @@ exports.updateReservation = async (req, res, next) => {
         // Make sure user is reservation owner or admin
         if (reservation.user.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({success: false, message: `User ${req.user.id} is not authorized to update this reservation`});
+        }
+        
+        // time want to change
+        const checkDate = req.body.date ? new Date(req.body.date) : new Date(reservation.date);
+        const duration = parseInt(req.body.duration || reservation.duration || 60);
+
+        // shop open and close
+        const massageShop = await MassageShop.findById(reservation.massageShop);
+        
+        const dateHour = checkDate.getHours();
+        const dateMin = checkDate.getMinutes();
+        const totalStartMinutes = (dateHour * 60) + dateMin;
+        const totalEndMinutes = totalStartMinutes + duration;
+
+        const [openStr, closeStr] = massageShop.openCloseTime.split(' - ');
+        const [openH, openM] = openStr.split(':').map(Number);
+        const openTimeMinutes = (openH * 60) + openM;
+        const [closeH, closeM] = closeStr.split(':').map(Number);
+        const closeTimeMinutes = (closeH * 60) + closeM;
+
+        // Check time
+        if (totalStartMinutes < openTimeMinutes || totalStartMinutes > closeTimeMinutes) {
+            return res.status(400).json({
+                success: false,
+                message: `Shop is open ${openStr}-${closeStr}. Your new time is out of range.`
+            });
+        }
+
+        // Check duration
+        if (totalEndMinutes > closeTimeMinutes) {
+            const finishHour = Math.floor((totalEndMinutes % 1440) / 60);
+            const finishMin = totalEndMinutes % 60;
+            const formattedFinishTime = `${finishHour}:${finishMin < 10 ? '0' + finishMin : finishMin}`;
+
+            return res.status(400).json({
+                success: false,
+                message: `The shop closes at ${closeStr}, but your updated session will finish at ${formattedFinishTime}.`
+            });
         }
 
         reservation = await Reservation.findByIdAndUpdate(req.params.id, req.body, {
