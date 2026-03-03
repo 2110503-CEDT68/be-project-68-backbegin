@@ -143,12 +143,13 @@ exports.deleteMassageShop = async (req,res,next)=>{
         }
 
         //Cascade delete reservations associated with this massage shop 
-        await Reservation.deleteMany({ massageShop: req.params.id });
-        await massageShop.deleteOne();
+        await Reservation.deleteMany({massageShop:req.params.id});
+        await massageShop.deleteOne({_id:req.params.id});
 
         res.status(200).json({ success: true, data: {} });
 
     } catch (err) {
+        console.log("Error detail:", err);
         res.status(400).json({success:false});
     }
 };

@@ -1,0 +1,38 @@
+@startuml MassageShop
+skinparam style strictuml
+skinparam monochrome true
+skinparam ParticipantPadding 20
+
+actor "User/Admin" as User
+participant "Postman / Client" as Client
+participant "Middleware: Auth" as Auth
+participant "Controller: Reservation" as Controller
+database "MongoDB" as DB
+
+User -> Client : POST /massage-shops/:shopId/reservations\n{ apptDate }
+Client -> Auth : Request with Bearer Token
+
+Auth -> Auth : protect() : Verify Token
+Auth -> DB : User.findById(decodedId)
+DB --> Auth : user object
+Auth -> Controller : next() with req.user
+
+Controller -> DB : MassageShop.findById(shopId)
+alt #LightPink Shop Not Found
+    DB --> Controller : null
+    Controller --> Client : 404 Not Found
+else #LightBlue Shop Exists
+    DB --> Controller : shop object
+    
+    Controller -> DB : Reservation.find({ user: req.user.id })
+    DB --> Controller : existedReservations[]
+
+    alt #LightPink count >= 3 AND role != 'admin'
+        Controller --> Client : 400 Bad Request\n(Exceeded max 3 reservations)
+    else #LightGreen Success Case
+        Controller -> DB : Reservation.create(req.body)
+        DB --> Controller : success
+        Controller --> Client : 201 Created
+    end
+end
+@enduml
