@@ -107,7 +107,7 @@ exports.addReservation = async (req, res, next) => {
         const dateMin = date.getMinutes();
         const totaldateMinutes = (dateHour * 60) + dateMin;
 
-        // Split time
+        // Split time 00:00 - 00:00
         const [openStr, closeStr] = massageShop.openCloseTime.split(' - ');
 
         const [openH, openM] = openStr.split(':').map(Number);
@@ -140,7 +140,7 @@ exports.addReservation = async (req, res, next) => {
 
         // Check for existing reservations (Limit to 3)
         const existedReservations = await Reservation.find({user:req.user.id});
-        //If the use ris not an admin, they can only create 3 appointment.
+        //If the use ris not an admin, they can only create 3 reservations.
         if(existedReservations.length >= 3 && req.user.role !== 'admin') {
             return res.status(400).json({ 
                 success: false, 
