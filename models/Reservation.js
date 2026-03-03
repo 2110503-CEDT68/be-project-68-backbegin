@@ -18,6 +18,10 @@ const ReservationSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    duration: {
+        type: Number,
+        required: [true, 'Please add massage duration (minutes)']
     }
 });
 
