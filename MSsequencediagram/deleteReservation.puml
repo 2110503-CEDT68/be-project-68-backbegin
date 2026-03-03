@@ -1,0 +1,33 @@
+@startuml Delete Reservation (DELETE)
+header Massage Reservation System
+footer Page %page% of %lastpage%
+title "Delete Reservation (DELETE)"
+
+participant "Client" as client
+participant ":server" as server <<javascript>>
+participant ":reservations" as router <<router>>
+participant ":reservations" as controller <<controllers>>
+participant ":Reservation" as model <<model>>
+database "MongoDB" as db
+
+client -> server : req.delete('/api/v1/reservations/:id')
+activate server
+server -> router : app.use('/api/v1/reservations', reservations)
+activate router
+router -> controller : deleteReservation()
+activate controller
+
+controller -> model : findById(req.params.id)
+activate model
+model -> db : Delete Operating
+activate db
+db --> model : success
+deactivate db
+model --> controller : void
+deactivate model
+
+controller --> client : response
+deactivate controller
+deactivate router
+deactivate server
+@enduml

@@ -1,0 +1,33 @@
+@startuml Update Reservation (PUT)
+header Massage Reservation System
+footer Page %page% of %lastpage%
+title "Update Reservation (PUT)"
+
+participant "Client" as client
+participant ":server" as server <<javascript>>
+participant ":reservations" as router <<router>>
+participant ":reservations" as controller <<controllers>>
+participant ":Reservation" as model <<model>>
+database "MongoDB" as db
+
+client -> server : req.put('/api/v1/reservations/:id')
+activate server
+server -> router : app.use('/api/v1/reservations', reservations)
+activate router
+router -> controller : updateReservation()
+activate controller
+
+controller -> model : findByIdAndUpdate(req.param.id, req.body)
+activate model
+model -> db : ReservationSchema
+activate db
+db --> model : reservation
+deactivate db
+model --> controller : reservation
+deactivate model
+
+controller --> client : response
+deactivate controller
+deactivate router
+deactivate server
+@enduml

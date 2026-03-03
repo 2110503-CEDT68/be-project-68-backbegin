@@ -1,0 +1,33 @@
+@startuml Get Single Reservation (GET)
+header Massage Reservation System
+skinparam monochrome true
+title "Get Single Reservations (GET)"
+
+participant "Client" as client
+participant ":server" as server <<javascript>>
+participant ":reservations" as router <<router>>
+participant ":reservations" as controller <<controllers>>
+participant ":Reservation" as model <<model>>
+database "MongoDB" as db
+
+client -> server : req.get('/api/v1/reservations/:id')
+activate server
+server -> router : app.use('/api/v1/reservations', reservations)
+activate router
+router -> controller : getReservation()
+activate controller
+
+controller -> model : findById(req.params.id)
+activate model
+model -> db : ReservationSchema
+activate db
+db --> model : data
+deactivate db
+model --> controller : data
+deactivate model
+
+controller --> client : response
+deactivate controller
+deactivate router
+deactivate server
+@enduml

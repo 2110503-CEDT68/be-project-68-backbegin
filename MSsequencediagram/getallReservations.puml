@@ -1,0 +1,33 @@
+@startuml Get All Reservations (GET)
+header Massage Reservation System
+footer Page %page% of %lastpage%
+title "Get All Reservations (GET)"
+
+participant "Client" as client
+participant ":server" as server <<javascript>>
+participant ":reservations" as router <<router>>
+participant ":reservations" as controller <<controllers>>
+participant ":Reservation" as model <<model>>
+database "MongoDB" as db
+
+client -> server : req.get('/api/v1/reservations')
+activate server
+server -> router : app.use('/api/v1/reservations', reservations)
+activate router
+router -> controller : getReservations()
+activate controller
+
+controller -> model : find().populate('massageShop')
+activate model
+model -> db : ReservationSchema
+activate db
+db --> model : reservations
+deactivate db
+model --> controller : reservations
+deactivate model
+
+controller --> client : response
+deactivate controller
+deactivate router
+deactivate server
+@enduml
