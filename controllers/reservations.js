@@ -10,19 +10,19 @@ exports.getReservations = async (req, res, next) => {
     if(req.user.role !== 'admin') {
         query = Reservation.find({user:req.user.id}).populate({
             path: 'massageShop',
-            select: 'name province tel'
+            select: 'name address tel openCloseTime'
         });
     } else {
         //Admin can see all
         if(req.params.massageShopId) {
             query = Reservation.find({massageShop:req.params.massageShopId}).populate({
                 path: 'massageShop',
-                select: 'name province tel'
+                select: 'name address tel openCloseTime'
             });
         } else {
             query = Reservation.find().populate({
                 path: 'massageShop',
-                select: 'name province tel'
+                select: 'name address tel openCloseTime'
             });
         }
     }
@@ -47,7 +47,7 @@ exports.getReservation = async (req, res, next) => {
     try {
         const reservation = await Reservation.findById(req.params.id).populate({
             path: 'massageShop',
-            select: 'name description tel'
+            select: 'name address tel openCloseTime'
         });
 
         if (!reservation) {
@@ -84,10 +84,44 @@ exports.addReservation = async (req, res, next) => {
         //add user Id to req.body
         req.body.user = req.user.id;
 
-        if (req.body.date) {
-            req.body.date = new Date(req.body.date);
-        }
+        // if (req.body.date) {
+        //     req.body.date = new Date(req.body.date);
+        // }
+        // console.log("req.body:", req.body);
+
+        const reserveDate = new Date(req.body.date);
+
+        reserveDate.setHours(reserveDate.getHours() + 7);
+
+        const reserveHour = reserveDate.getHours();
+        const reserveMinute = reserveDate.getMinutes();
+
+        // convert to minute
+        const reserveTotalMinutes = reserveHour * 60 + reserveMinute;
+        // split
+        const [openStr, closeStr] = massageShop.openCloseTime.split(" - ");
         
+        function convertToMinutes(timeStr) {
+            const [hourStr, minuteStr] = timeStr.split(".");
+            const hour = parseInt(hourStr);
+            const minute = parseInt(minuteStr);
+            return hour * 60 + minute;
+        }
+
+        const openMinutes = convertToMinutes(openStr);
+        const closeMinutes = convertToMinutes(closeStr);
+
+        console.log("reserveDate:", reserveDate);
+        console.log("getHours:", reserveDate.getHours());
+        console.log("toString:", reserveDate.toString());
+
+        if(reserveTotalMinutes < openMinutes || reserveTotalMinutes > closeMinutes) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot reserve. The shop is only open from ${massageShop.openCloseTime}`
+            });
+        }
+
         // Check for existing reservations (Limit to 3)
         const existedReservations = await Reservation.find({user:req.user.id});
         //If the use ris not an admin, they can only create 3 appointment.
