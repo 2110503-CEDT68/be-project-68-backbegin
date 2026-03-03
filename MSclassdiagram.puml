@@ -28,10 +28,11 @@ class MassageShop {
 }
 
 class Reservation {
-  - apptDate: Date
+  - date: Date
   - user: ObjectId
   - massageShop: ObjectId
   + getReservations(): Response
+  + getOwnReservations(): Response
   + addReservation(): Response
   + updateReservation(): Response
   + deleteReservation(): Response

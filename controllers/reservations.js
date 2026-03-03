@@ -68,6 +68,24 @@ exports.getReservation = async (req, res, next) => {
     }
 };
 
+//@desc     Get own reservation
+//@route    GET /api/v1/reservations/me
+//@access   Private
+exports.getOwnReservations = async (req, res, next) => {
+    try {
+        //find by userid
+        const reservations = await Reservation.find({ user: req.user.id }).populate({
+            path: 'massageShop',
+            select: 'name address tel openCloseTime'
+        });
+        res.status(200).json({success: true, count: reservations.length, data: reservations});
+
+    } catch (err) {
+        //console.log(err);
+        res.status(500).json({ success: false, message: "Cannot find your reservations" });
+    }
+};
+
 //@desc     Add reservation
 //@route    POST /api/v1/massage-shops/:massageShopId/reservations
 //@access   Private
